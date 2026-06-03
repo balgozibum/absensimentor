@@ -392,34 +392,41 @@ export function Modal({
   const width = size === 'sm' ? 'max-w-md' : size === 'lg' ? 'max-w-3xl' : 'max-w-xl'
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
-      <div
-        className="absolute inset-0 bg-ink/40 backdrop-blur-[2px] animate-fade"
-        onClick={onClose}
-      />
-      <div
-        role="dialog"
-        aria-modal="true"
-        className={cx(
-          'animate-scale relative z-10 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl border border-line bg-surface shadow-[var(--shadow-pop)] sm:rounded-xl',
-          width,
-        )}
-      >
-        <div className="flex shrink-0 items-start justify-between gap-4 border-b border-line px-5 py-4">
-          <div>
-            <h2 className="font-display text-[19px] font-semibold leading-tight text-ink">{title}</h2>
-            {subtitle && <p className="mt-0.5 text-[13px] text-ink-mute">{subtitle}</p>}
+    // The whole overlay scrolls: short modals are centered, tall modals make
+    // the overlay taller and you scroll to reach the bottom (footer/buttons
+    // are always reachable, regardless of viewport height or zoom).
+    <div className="fixed inset-0 z-50 overflow-y-auto" onClick={onClose}>
+      <div className="fixed inset-0 bg-ink/40 backdrop-blur-[2px] animate-fade" />
+      <div className="relative flex min-h-full items-end justify-center sm:items-center sm:p-6">
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => e.stopPropagation()}
+          className={cx(
+            'animate-scale relative z-10 flex w-full flex-col rounded-t-2xl border border-line bg-surface shadow-[var(--shadow-pop)] sm:rounded-xl',
+            width,
+          )}
+        >
+          <div className="sticky top-0 z-10 flex items-start justify-between gap-4 rounded-t-2xl border-b border-line bg-surface px-5 py-4 sm:rounded-t-xl">
+            <div>
+              <h2 className="font-display text-[19px] font-semibold leading-tight text-ink">{title}</h2>
+              {subtitle && <p className="mt-0.5 text-[13px] text-ink-mute">{subtitle}</p>}
+            </div>
+            <button
+              onClick={onClose}
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-ink-mute transition-colors hover:bg-surface-2 hover:text-ink"
+              aria-label="Tutup"
+            >
+              <IconX className="h-4.5 w-4.5" />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="grid h-8 w-8 place-items-center rounded-lg text-ink-mute transition-colors hover:bg-surface-2 hover:text-ink"
-            aria-label="Tutup"
-          >
-            <IconX className="h-4.5 w-4.5" />
-          </button>
+          <div className="px-5 py-5">{children}</div>
+          {footer && (
+            <div className="sticky bottom-0 border-t border-line bg-surface-2/95 px-5 py-3.5 backdrop-blur-sm">
+              {footer}
+            </div>
+          )}
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">{children}</div>
-        {footer && <div className="shrink-0 border-t border-line bg-surface-2/60 px-5 py-3.5">{footer}</div>}
       </div>
     </div>
   )

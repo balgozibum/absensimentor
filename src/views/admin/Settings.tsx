@@ -244,17 +244,6 @@ function AddEmployeeModal({
       onClose={close}
       title="Tambah karyawan"
       subtitle="Karyawan baru langsung aktif dan dapat mulai melapor kehadiran."
-      footer={
-        <div className="flex items-center justify-end gap-2">
-          <Button variant="ghost" onClick={close}>
-            Batal
-          </Button>
-          <Button variant="primary" onClick={submit} disabled={!canSubmit}>
-            <IconPlus className="h-4 w-4" />
-            Tambahkan
-          </Button>
-        </div>
-      }
     >
       <form
         className="space-y-4"
@@ -325,8 +314,16 @@ function AddEmployeeModal({
           />
         </Field>
 
-        {/* hidden submit keeps Enter-to-submit working inside the form */}
-        <button type="submit" className="hidden" aria-hidden tabIndex={-1} />
+        {/* actions live inside the scrollable form so the save button is always reachable */}
+        <div className="flex items-center justify-end gap-2 border-t border-line pt-4">
+          <Button type="button" variant="ghost" onClick={close}>
+            Batal
+          </Button>
+          <Button type="submit" variant="primary" disabled={!canSubmit}>
+            <IconPlus className="h-4 w-4" />
+            Simpan karyawan
+          </Button>
+        </div>
       </form>
     </Modal>
   )
