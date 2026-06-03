@@ -29,7 +29,7 @@ import type {
 import { makeSeed } from './seed'
 import { evaluateClockIn, todayISO } from './time'
 
-const STORAGE_KEY = 'absensimentor.v1'
+const STORAGE_KEY = 'absensimentor.v3'
 const ADMIN_ID = 'u_admin'
 
 let seq = 0
@@ -59,19 +59,31 @@ function load(): AppData {
 
 export interface Session {
   role: Role
-  /** the employee whose portal is being viewed (the acting staff member) */
-  employeeId: string
+  /**
+   * The logged-in person. In the employee portal a karyawan can only ever be
+   * themselves — null means "not logged in" and the app shows the login gate.
+   * Admins are always the ADMIN_ID account.
+   */
+  employeeId: string | null
 }
 
 interface StoreValue {
   data: AppData
   settings: Settings
   session: Session
+  /**
+   * The logged-in employee. Only read by the Shell + portal views, which render
+   * exclusively when someone is logged in, so it is always defined there. Falls
+   * back to the first employee while the login gate is showing (never read then).
+   */
   currentEmployee: Employee
 
   // session
   setRole: (role: Role) => void
-  setActingEmployee: (employeeId: string) => void
+  /** log into the employee portal as a specific person (their own data only) */
+  login: (employeeId: string) => void
+  /** leave the employee portal — returns to the login gate */
+  logout: () => void
 
   // lookups
   employeeById: (id: string) => Employee | undefined
@@ -111,7 +123,7 @@ interface StoreValue {
 
   // settings + employees
   updateSettings: (patch: Partial<Settings>) => void
-  addEmployee: (input: { name: string; email: string; title: string }) => void
+  addEmployee: (input: { name: string; email: string; title: string; birthDate: string }) => void
   setEmployeeActive: (id: string, active: boolean) => void
 
   resetData: () => void
@@ -121,7 +133,7 @@ const StoreContext = createContext<StoreValue | null>(null)
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<AppData>(load)
-  const [session, setSession] = useState<Session>({ role: 'karyawan', employeeId: 'u_andi' })
+  const [session, setSession] = useState<Session>({ role: 'karyawan', employeeId: null })
 
   // persist
   const first = useRef(true)
@@ -138,16 +150,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [data])
 
   const setRole = useCallback((role: Role) => {
-    setSession((s) => {
-      if (role === 'admin') return { role, employeeId: ADMIN_ID }
-      // returning to staff portal — pick the last staff member or a default
-      const fallback = s.employeeId === ADMIN_ID ? 'u_andi' : s.employeeId
-      return { role, employeeId: fallback }
-    })
+    if (role === 'admin') {
+      setSession({ role, employeeId: ADMIN_ID })
+    } else {
+      // entering the karyawan portal requires logging in as a specific person;
+      // no one is impersonated by default
+      setSession({ role, employeeId: null })
+    }
   }, [])
 
-  const setActingEmployee = useCallback((employeeId: string) => {
-    setSession((s) => ({ ...s, employeeId }))
+  const login = useCallback((employeeId: string) => {
+    setSession({ role: 'karyawan', employeeId })
+  }, [])
+
+  const logout = useCallback(() => {
+    setSession({ role: 'karyawan', employeeId: null })
   }, [])
 
   const employeeById = useCallback(
@@ -289,6 +306,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         name: input.name,
         email: input.email,
         title: input.title,
+        birthDate: input.birthDate,
         role: 'karyawan',
         active: true,
         hue: Math.round((prev.employees.length * 53) % 360),
@@ -306,7 +324,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const resetData = useCallback(() => {
     setData(makeSeed())
-    setSession({ role: 'karyawan', employeeId: 'u_andi' })
+    setSession({ role: 'karyawan', employeeId: null })
   }, [])
 
   const currentEmployee = useMemo(
@@ -320,7 +338,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     session,
     currentEmployee,
     setRole,
-    setActingEmployee,
+    login,
+    logout,
     employeeById,
     attendanceFor,
     clockIn,

@@ -21,6 +21,8 @@ export interface Employee {
   /** seed-time hue (0–360) used for the generated avatar — purely cosmetic */
   hue: number
   title: string
+  /** ISO 'YYYY-MM-DD'. Doubles as the employee-portal password (as DDMMYYYY). */
+  birthDate: string
 }
 
 export interface Settings {

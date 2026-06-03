@@ -73,8 +73,8 @@ const VARIANTS: Record<Variant, string> = {
 
 const SIZES: Record<Size, string> = {
   sm: 'h-8 px-3 text-[13px] gap-1.5 rounded-lg',
-  md: 'h-10 px-4 text-sm gap-2 rounded-xl',
-  lg: 'h-12 px-6 text-[15px] gap-2.5 rounded-xl',
+  md: 'h-10 px-4 text-sm gap-2 rounded-lg',
+  lg: 'h-12 px-6 text-[15px] gap-2.5 rounded-lg',
 }
 
 export function Button({
@@ -114,7 +114,7 @@ export function Card({
   return (
     <Tag
       className={cx(
-        'rounded-2xl border border-line bg-surface shadow-[var(--shadow-card)]',
+        'rounded-xl border border-line bg-surface shadow-[var(--shadow-card)]',
         className,
       )}
       {...rest}
@@ -212,7 +212,7 @@ export function Field({
 }
 
 const controlBase =
-  'w-full rounded-xl border border-line-strong bg-surface px-3.5 text-sm text-ink placeholder:text-ink-mute transition-colors focus:border-brand focus:outline-none focus:ring-4 focus:ring-[var(--color-brand-ring)]'
+  'w-full rounded-lg border border-line-strong bg-surface px-3.5 text-sm text-ink placeholder:text-ink-mute transition-colors focus:border-brand focus:outline-none focus:ring-4 focus:ring-[var(--color-brand-ring)]'
 
 export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={cx(controlBase, 'h-11', className)} {...props} />
@@ -401,7 +401,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         className={cx(
-          'animate-scale relative z-10 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-3xl border border-line bg-surface shadow-[var(--shadow-pop)] sm:rounded-2xl',
+          'animate-scale relative z-10 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl border border-line bg-surface shadow-[var(--shadow-pop)] sm:rounded-xl',
           width,
         )}
       >

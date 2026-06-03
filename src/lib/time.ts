@@ -100,6 +100,13 @@ export function isWeekend(iso: string): boolean {
   return day === 0 || day === 6
 }
 
+/** employee-portal password derived from birth date: 'YYYY-MM-DD' → 'DDMMYYYY' */
+export function birthdatePassword(birthDate: string): string {
+  if (!birthDate) return ''
+  const [y, m, d] = birthDate.split('-')
+  return `${d ?? ''}${m ?? ''}${y ?? ''}`
+}
+
 /** 7 ISO dates Mon→Sun for the week containing `iso` */
 export function weekDates(iso: string): string[] {
   const d = parseISODate(iso)
