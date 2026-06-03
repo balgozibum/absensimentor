@@ -113,6 +113,12 @@ export const IconKey = (p: P) => (
 export const IconEye = (p: P) => (
   <Base {...p}><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" /><circle cx="12" cy="12" r="2.8" /></Base>
 )
+export const IconDownload = (p: P) => (
+  <Base {...p}><path d="M12 3.5v11M8 11l4 4 4-4" /><path d="M4.5 18.5v.5a1.5 1.5 0 0 0 1.5 1.5h12a1.5 1.5 0 0 0 1.5-1.5v-.5" /></Base>
+)
+export const IconUpload = (p: P) => (
+  <Base {...p}><path d="M12 20.5v-11M8 13l4-4 4 4" /><path d="M4.5 5.5V5A1.5 1.5 0 0 1 6 3.5h12A1.5 1.5 0 0 1 19.5 5v.5" /></Base>
+)
 export const IconEyeOff = (p: P) => (
   <Base {...p}><path d="M10.6 6.1A9.7 9.7 0 0 1 12 6c6 0 9.5 6 9.5 6a16 16 0 0 1-2.3 3M6.5 7.8A15.6 15.6 0 0 0 2.5 12s3.5 6 9.5 6a9.4 9.4 0 0 0 4-.9" /><path d="M9.8 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18" /></Base>
 )
