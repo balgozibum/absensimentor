@@ -1,14 +1,14 @@
 // ───────────────────────────────────────────────────────────────
 // Shell — app chrome. Left sidebar on desktop, sticky bottom tab bar
-// on mobile. Hosts the role switch (Karyawan / Admin) and, in the
-// employee portal, the "acting as" staff picker (there's no auth — this
-// is how the demo moves between people; HANDOVER §8).
+// on mobile. Hosts the role switch (Karyawan / Admin) and a logout
+// control. A karyawan is always themselves (they logged in via the
+// gate) — there is no cross-employee switching here.
 // ───────────────────────────────────────────────────────────────
 
 import type { ReactNode } from 'react'
 import { useStore } from '../lib/store'
 import { Avatar, Segmented, cx } from './ui'
-import { IconChevronDown, IconRefresh } from './icons'
+import { IconLogOut, IconRefresh } from './icons'
 import type { Role } from '../types'
 
 export interface NavItem {
@@ -29,8 +29,7 @@ export function Shell({
   onNavigate: (key: string) => void
   children: ReactNode
 }) {
-  const { session, setRole, currentEmployee, setActingEmployee, data, resetData } = useStore()
-  const staff = data.employees.filter((e) => e.role === 'karyawan')
+  const { session, setRole, logout, resetData } = useStore()
 
   return (
     <div className="min-h-screen lg:flex">
@@ -50,13 +49,23 @@ export function Shell({
         <div className="mt-auto space-y-3 pt-4">
           <RoleSwitch role={session.role} onChange={setRole} />
           <UserCard />
-          <button
-            onClick={resetData}
-            className="flex w-full items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-[12px] text-ink-mute transition-colors hover:bg-surface-2 hover:text-ink-soft"
-          >
-            <IconRefresh className="h-3.5 w-3.5" />
-            Atur ulang data demo
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={logout}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-line bg-surface px-2 py-1.5 text-[12px] font-medium text-ink-soft transition-colors hover:bg-surface-2 hover:text-ink"
+            >
+              <IconLogOut className="h-3.5 w-3.5" />
+              Keluar
+            </button>
+            <button
+              onClick={resetData}
+              title="Atur ulang data demo"
+              className="flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-[12px] text-ink-mute transition-colors hover:bg-surface-2 hover:text-ink-soft"
+            >
+              <IconRefresh className="h-3.5 w-3.5" />
+              Reset
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -65,30 +74,17 @@ export function Shell({
         {/* Mobile top bar */}
         <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-line bg-surface/85 px-4 py-3 backdrop-blur-md lg:hidden">
           <Brand compact />
-          <RoleSwitch role={session.role} onChange={setRole} size="sm" />
-        </header>
-
-        {/* Employee "acting as" picker */}
-        {session.role === 'karyawan' && (
-          <div className="flex items-center gap-2.5 border-b border-line bg-brand-soft/40 px-4 py-2.5 sm:px-8">
-            <span className="text-[12.5px] text-ink-mute">Masuk sebagai</span>
-            <div className="relative">
-              <select
-                value={currentEmployee.id}
-                onChange={(e) => setActingEmployee(e.target.value)}
-                className="h-8 appearance-none rounded-lg border border-line-strong bg-surface pl-3 pr-8 text-[13px] font-medium text-ink focus:border-brand focus:outline-none"
-              >
-                {staff.map((e) => (
-                  <option key={e.id} value={e.id}>
-                    {e.name}
-                    {e.active ? '' : ' (nonaktif)'}
-                  </option>
-                ))}
-              </select>
-              <IconChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-mute" />
-            </div>
+          <div className="flex items-center gap-2">
+            <RoleSwitch role={session.role} onChange={setRole} size="sm" />
+            <button
+              onClick={logout}
+              className="grid h-8 w-8 place-items-center rounded-lg border border-line text-ink-mute transition-colors hover:bg-surface-2 hover:text-ink"
+              aria-label="Keluar"
+            >
+              <IconLogOut className="h-4 w-4" />
+            </button>
           </div>
-        )}
+        </header>
 
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-28 pt-6 sm:px-8 sm:pt-9 lg:pb-12">
           {children}

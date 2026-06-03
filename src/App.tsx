@@ -22,6 +22,8 @@ import { ApprovalsView } from './views/admin/Approvals'
 import { TimelinesView } from './views/admin/Timelines'
 import { SettingsView } from './views/admin/Settings'
 
+import { Login } from './views/Login'
+
 function Workspace() {
   const { session, data } = useStore()
   const [employeePage, setEmployeePage] = useState('dashboard')
@@ -53,6 +55,11 @@ function Workspace() {
       { key: 'activity', label: 'Aktivitas', icon: <IconActivity {...ic} /> },
     ]
   }, [isAdmin, pendingCount])
+
+  // Employee portal is gated: a karyawan must log in (as themselves) first.
+  if (session.role === 'karyawan' && session.employeeId == null) {
+    return <Login />
+  }
 
   return (
     <Shell navItems={navItems} page={page} onNavigate={setPage}>

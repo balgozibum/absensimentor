@@ -214,6 +214,7 @@ function AddEmployeeModal({
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [title, setTitle] = useState('')
+  const [birthDate, setBirthDate] = useState('')
 
   const trimmedName = name.trim()
   const trimmedEmail = email.trim()
@@ -221,18 +222,19 @@ function AddEmployeeModal({
   const emailTaken = data.employees.some(
     (e) => e.email.toLowerCase() === trimmedEmail.toLowerCase(),
   )
-  const canSubmit = trimmedName.length > 0 && emailLooksValid && !emailTaken
+  const canSubmit = trimmedName.length > 0 && emailLooksValid && !emailTaken && birthDate !== ''
 
   function close() {
     setName('')
     setEmail('')
     setTitle('')
+    setBirthDate('')
     onClose()
   }
 
   function submit() {
     if (!canSubmit) return
-    addEmployee({ name: trimmedName, email: trimmedEmail, title: title.trim() })
+    addEmployee({ name: trimmedName, email: trimmedEmail, title: title.trim(), birthDate })
     close()
   }
 
@@ -306,6 +308,20 @@ function AddEmployeeModal({
             placeholder="mis. Desainer Produk"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+          />
+        </Field>
+
+        <Field
+          label="Tanggal lahir"
+          htmlFor="emp-birth"
+          required
+          hint="Menjadi kata sandi login karyawan (format DDMMYYYY)"
+        >
+          <Input
+            id="emp-birth"
+            type="date"
+            value={birthDate}
+            onChange={(e) => setBirthDate(e.target.value)}
           />
         </Field>
 

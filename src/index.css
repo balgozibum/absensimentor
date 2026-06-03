@@ -2,50 +2,52 @@
 
 /* ───────────────────────────────────────────────────────────────
    AbsensiMentor — design tokens
-   Light mode only (per brief). Editorial "operations almanac"
-   identity: ivory canvas, deep navy brand, copper accent, serif
-   display moments. Registered via @theme so tokens surface as
-   Tailwind utilities (bg-canvas, text-brand, font-display, …).
+   Light mode only. "Crisp SaaS" identity: near-white canvas, neutral
+   zinc surfaces with hairline borders, electric indigo brand + orange
+   secondary, Geist sans throughout. Registered via @theme so tokens
+   surface as Tailwind utilities (bg-canvas, text-brand, font-display…).
    ─────────────────────────────────────────────────────────────── */
 @theme {
-  --font-display: "Fraunces", ui-serif, Georgia, serif;
-  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-display: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", monospace;
 
-  /* Warm ivory neutrals */
-  --color-canvas: #f6f3ec;
-  --color-surface: #fffdf8;
-  --color-surface-2: #f1ede3;
-  --color-ink: #1f1d1a;
-  --color-ink-soft: #524d44;
-  --color-ink-mute: #8b857a;
-  --color-line: #e4ded1;
-  --color-line-strong: #d3ccba;
+  /* Neutral zinc */
+  --color-canvas: #fafafa;
+  --color-surface: #ffffff;
+  --color-surface-2: #f4f4f5;
+  --color-ink: #09090b;
+  --color-ink-soft: #3f3f46;
+  --color-ink-mute: #71717a;
+  --color-line: #e9e9eb;
+  --color-line-strong: #d4d4d8;
 
-  /* Brand — deep navy ink-blue */
-  --color-brand: #1b3a5b;
-  --color-brand-strong: #142c46;
-  --color-brand-soft: #e4e9f0;
-  --color-brand-ring: #1b3a5b33;
+  /* Brand — electric indigo */
+  --color-brand: #4f46e5;
+  --color-brand-strong: #4338ca;
+  --color-brand-soft: #eef2ff;
+  --color-brand-ring: #4f46e540;
+  --color-on-brand: #ffffff;
 
-  /* Accent — copper */
-  --color-copper: #c2702e;
-  --color-copper-strong: #a65c20;
-  --color-copper-soft: #f6e7d6;
+  /* Secondary accent — orange */
+  --color-copper: #ea580c;
+  --color-copper-strong: #c2410c;
+  --color-copper-soft: #fff1e7;
+  --color-on-copper: #ffffff;
 
   /* Semantic status */
-  --color-ok: #2f7d56;
-  --color-ok-soft: #e0efe5;
-  --color-warn: #b07414;
-  --color-warn-soft: #f7ead2;
-  --color-danger: #b23b22;
-  --color-danger-soft: #f7e1da;
-  --color-info: #2c5685;
-  --color-info-soft: #e2eaf3;
+  --color-ok: #16a34a;
+  --color-ok-soft: #dcfce7;
+  --color-warn: #d97706;
+  --color-warn-soft: #fef3c7;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fee2e2;
+  --color-info: #2563eb;
+  --color-info-soft: #dbeafe;
 
-  /* Elevation */
-  --shadow-card: 0 1px 2px rgba(31, 29, 26, 0.04), 0 8px 24px -12px rgba(31, 29, 26, 0.12);
-  --shadow-pop: 0 12px 40px -12px rgba(20, 28, 46, 0.28);
+  /* Elevation — subtle; structure comes from hairline borders */
+  --shadow-card: 0 1px 2px rgba(9, 9, 11, 0.05), 0 1px 3px rgba(9, 9, 11, 0.04);
+  --shadow-pop: 0 10px 38px -10px rgba(9, 9, 11, 0.22), 0 2px 8px rgba(9, 9, 11, 0.08);
 }
 
 :root {
@@ -64,11 +66,6 @@ body {
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* faint engraved-paper hairline grid */
-  background-image:
-    linear-gradient(to right, rgba(31, 29, 26, 0.022) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(31, 29, 26, 0.022) 1px, transparent 1px);
-  background-size: 26px 26px;
 }
 
 /* Tabular numerals for times / counters */
@@ -77,10 +74,9 @@ body {
   font-feature-settings: "tnum";
 }
 
-/* Fraunces optical/soft tuning for display moments */
+/* Geist display tuning — tight tracking for crisp headings */
 .font-display {
-  font-optical-sizing: auto;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 /* Quiet custom scrollbars */
