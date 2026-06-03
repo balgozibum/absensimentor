@@ -57,6 +57,21 @@ function load(): AppData {
   return makeSeed()
 }
 
+/** guard against partial/corrupt documents coming back from the backend */
+function isAppData(x: unknown): x is AppData {
+  const d = x as AppData | null
+  return (
+    !!d &&
+    typeof d === 'object' &&
+    !!d.settings &&
+    Array.isArray(d.employees) &&
+    Array.isArray(d.attendance) &&
+    Array.isArray(d.leave) &&
+    Array.isArray(d.overtime) &&
+    Array.isArray(d.activities)
+  )
+}
+
 // ── Context shape ────────────────────────────────────────────────
 
 export interface Session {
@@ -157,7 +172,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
     const poll = async () => {
       const latest = await getRemoteState()
-      if (cancelled || !latest) return
+      if (cancelled || !isAppData(latest)) return
       const json = JSON.stringify(latest)
       if (json !== syncedRef.current) {
         syncedRef.current = json
@@ -175,11 +190,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return
       }
       remoteRef.current = true
-      if (remote) {
+      if (isAppData(remote)) {
         syncedRef.current = JSON.stringify(remote)
         setData(remote)
       } else {
-        // first connection — seed the shared document
+        // empty or corrupt shared doc — seed it
         const seed = makeSeed()
         syncedRef.current = JSON.stringify(seed)
         await saveRemoteState(seed)
