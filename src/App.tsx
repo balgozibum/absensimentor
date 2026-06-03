@@ -24,8 +24,19 @@ import { SettingsView } from './views/admin/Settings'
 
 import { Login } from './views/Login'
 
+function Loader() {
+  return (
+    <div className="grid min-h-screen place-items-center">
+      <div className="flex flex-col items-center gap-3 text-ink-mute">
+        <span className="h-9 w-9 animate-spin rounded-full border-[3px] border-line border-t-brand" />
+        <span className="text-[13px]">Memuat data…</span>
+      </div>
+    </div>
+  )
+}
+
 function Workspace() {
-  const { session, data } = useStore()
+  const { session, data, loading } = useStore()
   const [employeePage, setEmployeePage] = useState('dashboard')
   const [adminPage, setAdminPage] = useState('dashboard')
 
@@ -55,6 +66,11 @@ function Workspace() {
       { key: 'activity', label: 'Aktivitas', icon: <IconActivity {...ic} /> },
     ]
   }, [isAdmin, pendingCount])
+
+  // Wait for the shared document before showing anything (backed mode only).
+  if (loading) {
+    return <Loader />
+  }
 
   // Employee portal is gated: a karyawan must log in (as themselves) first.
   if (session.role === 'karyawan' && session.employeeId == null) {
