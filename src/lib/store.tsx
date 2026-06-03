@@ -28,9 +28,11 @@ import type {
 } from '../types'
 import { makeSeed } from './seed'
 import { evaluateClockIn, todayISO } from './time'
+import { getRemoteState, saveRemoteState } from './remote'
 
 const STORAGE_KEY = 'absensimentor.v3'
 const ADMIN_ID = 'u_admin'
+const POLL_MS = 7000
 
 let seq = 0
 function newId(prefix: string): string {
@@ -71,6 +73,8 @@ interface StoreValue {
   data: AppData
   settings: Settings
   session: Session
+  /** true while the shared document is loading from the backend */
+  loading: boolean
   /**
    * The logged-in employee. Only read by the Shell + portal views, which render
    * exclusively when someone is logged in, so it is always defined there. Falls
@@ -138,14 +142,76 @@ const StoreContext = createContext<StoreValue | null>(null)
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<AppData>(load)
+  const [loading, setLoading] = useState(true)
   const [session, setSession] = useState<Session>({ role: 'karyawan', employeeId: null })
 
-  // persist
+  // Whether the shared backend (/api/state) is reachable, and the JSON we last
+  // synced (guards against re-saving our own echo and re-applying polled data).
+  const remoteRef = useRef(false)
+  const syncedRef = useRef<string | null>(null)
+
+  // ── Detect backend, load shared doc, then poll for remote changes ──
+  useEffect(() => {
+    let cancelled = false
+    let timer: ReturnType<typeof setInterval> | undefined
+
+    const poll = async () => {
+      const latest = await getRemoteState()
+      if (cancelled || !latest) return
+      const json = JSON.stringify(latest)
+      if (json !== syncedRef.current) {
+        syncedRef.current = json
+        setData(latest)
+      }
+    }
+
+    ;(async () => {
+      const remote = await getRemoteState()
+      if (cancelled) return
+      if (remote === undefined) {
+        // no backend (e.g. local `vite dev`) — stay on localStorage
+        remoteRef.current = false
+        setLoading(false)
+        return
+      }
+      remoteRef.current = true
+      if (remote) {
+        syncedRef.current = JSON.stringify(remote)
+        setData(remote)
+      } else {
+        // first connection — seed the shared document
+        const seed = makeSeed()
+        syncedRef.current = JSON.stringify(seed)
+        await saveRemoteState(seed)
+        if (!cancelled) setData(seed)
+      }
+      if (!cancelled) setLoading(false)
+      timer = setInterval(poll, POLL_MS)
+      window.addEventListener('focus', poll)
+    })()
+
+    return () => {
+      cancelled = true
+      if (timer) clearInterval(timer)
+      window.removeEventListener('focus', poll)
+    }
+  }, [])
+
+  // ── Persist on every change (backend if available, else localStorage) ──
   const first = useRef(true)
   useEffect(() => {
     if (first.current) {
       first.current = false
       return
+    }
+    if (remoteRef.current) {
+      const json = JSON.stringify(data)
+      if (json === syncedRef.current) return // unchanged or echo of polled data
+      syncedRef.current = json
+      const handle = setTimeout(() => {
+        saveRemoteState(data).catch((e) => console.error('Save failed:', e))
+      }, 400)
+      return () => clearTimeout(handle)
     }
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
@@ -362,6 +428,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     data,
     settings: data.settings,
     session,
+    loading,
     currentEmployee,
     setRole,
     login,
