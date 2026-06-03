@@ -9,7 +9,7 @@
 import { useState } from 'react'
 import type { Employee } from '../types'
 import { useStore } from '../lib/store'
-import { birthdatePassword, formatDateShort } from '../lib/time'
+import { birthdatePassword } from '../lib/time'
 import { Avatar, Button, Input, cx } from '../components/ui'
 import { IconArrowRight, IconChevronLeft, IconAlert, IconUser, IconSettings } from '../components/icons'
 
@@ -173,12 +173,6 @@ function PasswordStep({
         <IconUser className="h-4.5 w-4.5" />
         Masuk
       </Button>
-
-      {/* demo hint — no backend, so reveal this person's password for testing */}
-      <p className="mt-4 rounded-xl bg-surface-2 px-3 py-2 text-center text-[12px] text-ink-mute">
-        Demo · lahir {formatDateShort(employee.birthDate)} → kata sandi{' '}
-        <span className="font-mono font-semibold text-ink-soft tnum">{expected}</span>
-      </p>
     </div>
   )
 }

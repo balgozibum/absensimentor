@@ -104,3 +104,15 @@ export const IconLogOut = (p: P) => (
   <Base {...p}><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4" /><path d="M9 12h11M16 8l4 4-4 4" /></Base>
 )
 export const IconDot = (p: P) => (<Base {...p}><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none" /></Base>)
+export const IconCopy = (p: P) => (
+  <Base {...p}><rect x="9" y="9" width="11" height="11" rx="2.2" /><path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5V4.5A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5" /></Base>
+)
+export const IconKey = (p: P) => (
+  <Base {...p}><circle cx="8" cy="15" r="4" /><path d="M10.8 12.2 20 3M17 6l2 2M14 9l1.8 1.8" /></Base>
+)
+export const IconEye = (p: P) => (
+  <Base {...p}><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" /><circle cx="12" cy="12" r="2.8" /></Base>
+)
+export const IconEyeOff = (p: P) => (
+  <Base {...p}><path d="M10.6 6.1A9.7 9.7 0 0 1 12 6c6 0 9.5 6 9.5 6a16 16 0 0 1-2.3 3M6.5 7.8A15.6 15.6 0 0 0 2.5 12s3.5 6 9.5 6a9.4 9.4 0 0 0 4-.9" /><path d="M9.8 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18" /></Base>
+)
