@@ -125,6 +125,8 @@ interface StoreValue {
   updateSettings: (patch: Partial<Settings>) => void
   addEmployee: (input: { name: string; email: string; title: string; birthDate: string }) => void
   setEmployeeActive: (id: string, active: boolean) => void
+  /** permanently remove an employee and ALL of their records (never the admin) */
+  deleteEmployee: (id: string) => void
 
   resetData: () => void
 }
@@ -322,6 +324,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }))
   }, [])
 
+  const deleteEmployee = useCallback<StoreValue['deleteEmployee']>((id) => {
+    setData((prev) => {
+      const target = prev.employees.find((e) => e.id === id)
+      if (!target || target.role === 'admin') return prev // never delete the owner
+      return {
+        ...prev,
+        employees: prev.employees.filter((e) => e.id !== id),
+        attendance: prev.attendance.filter((a) => a.employeeId !== id),
+        leave: prev.leave.filter((l) => l.employeeId !== id),
+        overtime: prev.overtime.filter((o) => o.employeeId !== id),
+        activities: prev.activities.filter((a) => a.employeeId !== id),
+      }
+    })
+    // if the deleted person was the one logged into the employee portal, log them out
+    setSession((s) => (s.employeeId === id ? { role: 'karyawan', employeeId: null } : s))
+  }, [])
+
   const resetData = useCallback(() => {
     setData(makeSeed())
     setSession({ role: 'karyawan', employeeId: null })
@@ -354,6 +373,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     updateSettings,
     addEmployee,
     setEmployeeActive,
+    deleteEmployee,
     resetData,
   }
 

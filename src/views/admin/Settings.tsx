@@ -21,6 +21,7 @@ import {
   PageHeader,
 } from '../../components/ui'
 import {
+  IconAlert,
   IconBuilding,
   IconCheck,
   IconClock,
@@ -31,6 +32,7 @@ import {
   IconMail,
   IconPlus,
   IconSunrise,
+  IconTrash,
   IconUser,
   IconUsers,
 } from '../../components/icons'
@@ -377,8 +379,9 @@ function PasswordCell({ value }: { value: string }) {
 // ── Single roster row ────────────────────────────────────────────
 
 function RosterRow({ employee }: { employee: Employee }) {
-  const { setEmployeeActive } = useStore()
+  const { setEmployeeActive, deleteEmployee } = useStore()
   const isAdmin = employee.role === 'admin'
+  const [confirming, setConfirming] = useState(false)
 
   return (
     <div className="flex items-center justify-between gap-4 px-5 py-3.5">
@@ -393,7 +396,7 @@ function RosterRow({ employee }: { employee: Employee }) {
         }
       />
 
-      <div className="flex shrink-0 items-center gap-3">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
         <PasswordCell value={birthdatePassword(employee.birthDate)} />
 
         {isAdmin ? (
@@ -405,18 +408,63 @@ function RosterRow({ employee }: { employee: Employee }) {
         )}
 
         {isAdmin ? (
-          // The admin can't be deactivated — they own this very screen.
+          // The admin can't be deactivated or deleted — they own this very screen.
           <span className="hidden text-[12px] text-ink-mute sm:inline">Akun pemilik</span>
         ) : (
-          <Button
-            size="sm"
-            variant={employee.active ? 'secondary' : 'primary'}
-            onClick={() => setEmployeeActive(employee.id, !employee.active)}
-          >
-            {employee.active ? 'Nonaktifkan' : 'Aktifkan'}
-          </Button>
+          <>
+            <Button
+              size="sm"
+              variant={employee.active ? 'secondary' : 'primary'}
+              onClick={() => setEmployeeActive(employee.id, !employee.active)}
+            >
+              {employee.active ? 'Nonaktifkan' : 'Aktifkan'}
+            </Button>
+            <button
+              type="button"
+              onClick={() => setConfirming(true)}
+              className="grid h-8 w-8 place-items-center rounded-lg border border-line text-ink-mute transition-colors hover:border-danger/40 hover:bg-danger-soft hover:text-danger"
+              title="Hapus karyawan"
+              aria-label={`Hapus ${employee.name}`}
+            >
+              <IconTrash className="h-4 w-4" />
+            </button>
+          </>
         )}
       </div>
+
+      <Modal
+        open={confirming}
+        onClose={() => setConfirming(false)}
+        size="sm"
+        title="Hapus karyawan?"
+        subtitle="Tindakan ini tidak dapat dibatalkan."
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 rounded-xl border border-danger/20 bg-danger-soft px-4 py-3">
+            <IconAlert className="mt-0.5 h-5 w-5 shrink-0 text-danger" />
+            <p className="text-[13.5px] leading-relaxed text-ink-soft">
+              <strong className="font-semibold text-ink">{employee.name}</strong> dan{' '}
+              <strong className="font-semibold text-ink">seluruh datanya</strong> (absensi, cuti,
+              lembur, dan timeline aktivitas) akan dihapus permanen.
+            </p>
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            <Button variant="ghost" onClick={() => setConfirming(false)}>
+              Batal
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                deleteEmployee(employee.id)
+                setConfirming(false)
+              }}
+            >
+              <IconTrash className="h-4 w-4" />
+              Hapus permanen
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }
