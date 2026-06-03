@@ -1,0 +1,148 @@
+@import "tailwindcss";
+
+/* ───────────────────────────────────────────────────────────────
+   AbsensiMentor — design tokens
+   Light mode only (per brief). Editorial "operations almanac"
+   identity: ivory canvas, deep navy brand, copper accent, serif
+   display moments. Registered via @theme so tokens surface as
+   Tailwind utilities (bg-canvas, text-brand, font-display, …).
+   ─────────────────────────────────────────────────────────────── */
+@theme {
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Warm ivory neutrals */
+  --color-canvas: #f6f3ec;
+  --color-surface: #fffdf8;
+  --color-surface-2: #f1ede3;
+  --color-ink: #1f1d1a;
+  --color-ink-soft: #524d44;
+  --color-ink-mute: #8b857a;
+  --color-line: #e4ded1;
+  --color-line-strong: #d3ccba;
+
+  /* Brand — deep navy ink-blue */
+  --color-brand: #1b3a5b;
+  --color-brand-strong: #142c46;
+  --color-brand-soft: #e4e9f0;
+  --color-brand-ring: #1b3a5b33;
+
+  /* Accent — copper */
+  --color-copper: #c2702e;
+  --color-copper-strong: #a65c20;
+  --color-copper-soft: #f6e7d6;
+
+  /* Semantic status */
+  --color-ok: #2f7d56;
+  --color-ok-soft: #e0efe5;
+  --color-warn: #b07414;
+  --color-warn-soft: #f7ead2;
+  --color-danger: #b23b22;
+  --color-danger-soft: #f7e1da;
+  --color-info: #2c5685;
+  --color-info-soft: #e2eaf3;
+
+  /* Elevation */
+  --shadow-card: 0 1px 2px rgba(31, 29, 26, 0.04), 0 8px 24px -12px rgba(31, 29, 26, 0.12);
+  --shadow-pop: 0 12px 40px -12px rgba(20, 28, 46, 0.28);
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* faint engraved-paper hairline grid */
+  background-image:
+    linear-gradient(to right, rgba(31, 29, 26, 0.022) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(31, 29, 26, 0.022) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+
+/* Tabular numerals for times / counters */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Fraunces optical/soft tuning for display moments */
+.font-display {
+  font-optical-sizing: auto;
+  letter-spacing: -0.01em;
+}
+
+/* Quiet custom scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-line-strong);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-mute);
+  background-clip: content-box;
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+/* ── Entrance animations ───────────────────────────────────────── */
+@keyframes fade-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+@keyframes sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+.animate-rise { animation: fade-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-fade { animation: fade-in 0.4s ease both; }
+.animate-scale { animation: scale-in 0.26s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-pulse-soft { animation: pulse-soft 1.8s ease-in-out infinite; }
+
+/* staggered helper: set --i on children */
+.stagger > * { animation: fade-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--i, 0) * 60ms); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
