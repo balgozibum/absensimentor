@@ -128,6 +128,9 @@ interface StoreValue {
   /** permanently remove an employee and ALL of their records (never the admin) */
   deleteEmployee: (id: string) => void
 
+  /** replace the entire dataset (used by Restore / import) */
+  replaceAllData: (next: AppData) => void
+
   resetData: () => void
 }
 
@@ -341,6 +344,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setSession((s) => (s.employeeId === id ? { role: 'karyawan', employeeId: null } : s))
   }, [])
 
+  const replaceAllData = useCallback<StoreValue['replaceAllData']>((next) => {
+    setData(next)
+  }, [])
+
   const resetData = useCallback(() => {
     setData(makeSeed())
     setSession({ role: 'karyawan', employeeId: null })
@@ -374,6 +381,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     addEmployee,
     setEmployeeActive,
     deleteEmployee,
+    replaceAllData,
     resetData,
   }
 

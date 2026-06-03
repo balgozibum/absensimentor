@@ -4,8 +4,8 @@
 // the roster of people. Deliberately calm and form-like, not dense.
 // ───────────────────────────────────────────────────────────────
 
-import { useMemo, useState } from 'react'
-import type { Employee, Settings } from '../../types'
+import { useMemo, useRef, useState } from 'react'
+import type { AppData, Employee, Settings } from '../../types'
 import { useStore } from '../../lib/store'
 import { birthdatePassword, fromMinutes, toMinutes } from '../../lib/time'
 import {
@@ -26,9 +26,11 @@ import {
   IconCheck,
   IconClock,
   IconCopy,
+  IconDownload,
   IconEye,
   IconEyeOff,
   IconKey,
+  IconUpload,
   IconMail,
   IconPlus,
   IconSunrise,
@@ -537,6 +539,102 @@ function RosterCard() {
   )
 }
 
+// ── Backup & restore (move the same data to another browser/device) ──
+
+function BackupCard() {
+  const { data, replaceAllData } = useStore()
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null)
+
+  function download() {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'absensimentor-data.json'
+    a.click()
+    URL.revokeObjectURL(url)
+    setMsg({ kind: 'ok', text: 'Data diunduh sebagai file. Buka file ini lewat "Pulihkan" di browser lain.' })
+  }
+
+  function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // allow re-selecting the same file later
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      try {
+        const p = JSON.parse(String(reader.result)) as Partial<AppData>
+        const valid =
+          p &&
+          p.settings &&
+          Array.isArray(p.employees) &&
+          Array.isArray(p.attendance) &&
+          Array.isArray(p.leave) &&
+          Array.isArray(p.overtime) &&
+          Array.isArray(p.activities)
+        if (!valid) throw new Error('format')
+        replaceAllData(p as AppData)
+        setMsg({ kind: 'ok', text: 'Berhasil! Browser ini kini memakai data yang sama persis.' })
+      } catch {
+        setMsg({ kind: 'err', text: 'File tidak cocok. Pilih file cadangan (.json) dari aplikasi ini.' })
+      }
+    }
+    reader.readAsText(file)
+  }
+
+  return (
+    <Card style={{ ['--i' as string]: 2 }}>
+      <CardHeader
+        title="Cadangan & Pulihkan"
+        subtitle="Samakan data ke browser / perangkat lain"
+        icon={<IconDownload className="h-4.5 w-4.5" />}
+      />
+      <div className="space-y-4 px-5 py-5">
+        <p className="text-[13.5px] leading-relaxed text-ink-soft">
+          Data tersimpan di browser ini. Untuk menampilkan <strong className="font-semibold text-ink">data yang sama</strong> di
+          browser/HP lain: klik <strong className="font-semibold text-ink">Unduh data</strong> di sini, lalu di perangkat lain
+          buka aplikasi → Pengaturan → <strong className="font-semibold text-ink">Pulihkan dari file</strong> dan pilih file tadi.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" onClick={download}>
+            <IconDownload className="h-4 w-4" />
+            Unduh data
+          </Button>
+          <Button variant="secondary" onClick={() => fileRef.current?.click()}>
+            <IconUpload className="h-4 w-4" />
+            Pulihkan dari file
+          </Button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/json,.json"
+            className="hidden"
+            onChange={onFile}
+          />
+        </div>
+        {msg && (
+          <div
+            className={cx(
+              'flex items-start gap-2 rounded-lg border px-3 py-2 text-[13px]',
+              msg.kind === 'ok'
+                ? 'border-ok/20 bg-ok-soft text-ok'
+                : 'border-danger/20 bg-danger-soft text-danger',
+            )}
+          >
+            {msg.kind === 'ok' ? (
+              <IconCheck className="mt-0.5 h-4 w-4 shrink-0" />
+            ) : (
+              <IconAlert className="mt-0.5 h-4 w-4 shrink-0" />
+            )}
+            <span>{msg.text}</span>
+          </div>
+        )}
+      </div>
+    </Card>
+  )
+}
+
 // ── View ─────────────────────────────────────────────────────────
 
 export function SettingsView() {
@@ -556,6 +654,7 @@ export function SettingsView() {
       <div className="stagger space-y-6">
         <WorkHoursCard />
         <RosterCard />
+        <BackupCard />
       </div>
     </div>
   )
