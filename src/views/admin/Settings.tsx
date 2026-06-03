@@ -7,7 +7,7 @@
 import { useMemo, useState } from 'react'
 import type { Employee, Settings } from '../../types'
 import { useStore } from '../../lib/store'
-import { fromMinutes, toMinutes } from '../../lib/time'
+import { birthdatePassword, fromMinutes, toMinutes } from '../../lib/time'
 import {
   Badge,
   Button,
@@ -24,6 +24,10 @@ import {
   IconBuilding,
   IconCheck,
   IconClock,
+  IconCopy,
+  IconEye,
+  IconEyeOff,
+  IconKey,
   IconMail,
   IconPlus,
   IconSunrise,
@@ -329,6 +333,47 @@ function AddEmployeeModal({
   )
 }
 
+// ── Password cell (admin-only) — reveal + copy a person's login password ──
+
+function PasswordCell({ value }: { value: string }) {
+  const [show, setShow] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  function copy() {
+    navigator.clipboard?.writeText(value).catch(() => {})
+    setShow(true)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1300)
+  }
+
+  return (
+    <div className="hidden items-center gap-0.5 rounded-lg border border-line bg-surface-2 py-1 pl-2.5 pr-1 sm:flex">
+      <IconKey className="mr-1 h-3.5 w-3.5 text-ink-mute" />
+      <span className="w-[74px] text-center font-mono text-[12.5px] font-semibold tracking-wide text-ink tnum">
+        {show ? value : '••••••••'}
+      </span>
+      <button
+        type="button"
+        onClick={() => setShow((s) => !s)}
+        className="grid h-6 w-6 place-items-center rounded-md text-ink-mute transition-colors hover:bg-surface hover:text-ink"
+        title={show ? 'Sembunyikan' : 'Lihat kata sandi'}
+        aria-label={show ? 'Sembunyikan kata sandi' : 'Lihat kata sandi'}
+      >
+        {show ? <IconEyeOff className="h-3.5 w-3.5" /> : <IconEye className="h-3.5 w-3.5" />}
+      </button>
+      <button
+        type="button"
+        onClick={copy}
+        className="grid h-6 w-6 place-items-center rounded-md text-ink-mute transition-colors hover:bg-surface hover:text-ink"
+        title="Salin kata sandi"
+        aria-label="Salin kata sandi"
+      >
+        {copied ? <IconCheck className="h-3.5 w-3.5 text-ok" /> : <IconCopy className="h-3.5 w-3.5" />}
+      </button>
+    </div>
+  )
+}
+
 // ── Single roster row ────────────────────────────────────────────
 
 function RosterRow({ employee }: { employee: Employee }) {
@@ -349,6 +394,8 @@ function RosterRow({ employee }: { employee: Employee }) {
       />
 
       <div className="flex shrink-0 items-center gap-3">
+        <PasswordCell value={birthdatePassword(employee.birthDate)} />
+
         {isAdmin ? (
           <Badge tone="brand" dot>
             Admin
@@ -422,11 +469,19 @@ function RosterCard() {
           }
         />
       ) : (
-        <div className="divide-y divide-line">
-          {ordered.map((employee) => (
-            <RosterRow key={employee.id} employee={employee} />
-          ))}
-        </div>
+        <>
+          <div className="flex items-center gap-2 border-b border-line bg-surface-2/50 px-5 py-2 text-[12px] text-ink-mute">
+            <IconKey className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              Kata sandi login = tanggal lahir (DDMMYYYY). Hanya admin yang melihatnya — bagikan ke karyawan masing-masing.
+            </span>
+          </div>
+          <div className="divide-y divide-line">
+            {ordered.map((employee) => (
+              <RosterRow key={employee.id} employee={employee} />
+            ))}
+          </div>
+        </>
       )}
 
       <AddEmployeeModal open={adding} onClose={() => setAdding(false)} />
