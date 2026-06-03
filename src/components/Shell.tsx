@@ -7,9 +7,8 @@
 
 import type { ReactNode } from 'react'
 import { useStore } from '../lib/store'
-import { Avatar, Segmented, cx } from './ui'
+import { Avatar, cx } from './ui'
 import { IconLogOut, IconRefresh } from './icons'
-import type { Role } from '../types'
 
 export interface NavItem {
   key: string
@@ -29,7 +28,7 @@ export function Shell({
   onNavigate: (key: string) => void
   children: ReactNode
 }) {
-  const { session, setRole, logout, resetData } = useStore()
+  const { session, logout, resetData } = useStore()
 
   return (
     <div className="min-h-screen lg:flex">
@@ -47,7 +46,6 @@ export function Shell({
         </nav>
 
         <div className="mt-auto space-y-3 pt-4">
-          <RoleSwitch role={session.role} onChange={setRole} />
           <UserCard />
           <div className="flex items-center gap-1">
             <button
@@ -75,7 +73,6 @@ export function Shell({
         <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-line bg-surface/85 px-4 py-3 backdrop-blur-md lg:hidden">
           <Brand compact />
           <div className="flex items-center gap-2">
-            <RoleSwitch role={session.role} onChange={setRole} size="sm" />
             <button
               onClick={logout}
               className="grid h-8 w-8 place-items-center rounded-lg border border-line text-ink-mute transition-colors hover:bg-surface-2 hover:text-ink"
@@ -164,20 +161,6 @@ function NavButton({ item, active, onClick }: { item: NavItem; active: boolean; 
         </span>
       ) : null}
     </button>
-  )
-}
-
-function RoleSwitch({ role, onChange, size = 'md' }: { role: Role; onChange: (r: Role) => void; size?: 'sm' | 'md' }) {
-  return (
-    <Segmented<Role>
-      value={role}
-      onChange={onChange}
-      size={size}
-      options={[
-        { value: 'karyawan', label: 'Karyawan' },
-        { value: 'admin', label: 'Admin' },
-      ]}
-    />
   )
 }
 

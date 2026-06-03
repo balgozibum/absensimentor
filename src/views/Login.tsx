@@ -32,7 +32,9 @@ function BrandMark() {
 export function Login() {
   const { data, login, setRole } = useStore()
   const staff = data.employees.filter((e) => e.role === 'karyawan' && e.active)
+  const admin = data.employees.find((e) => e.role === 'admin')
   const [selected, setSelected] = useState<Employee | null>(null)
+  const [adminMode, setAdminMode] = useState(false)
 
   return (
     <div className="relative grid min-h-screen place-items-center px-4 py-10">
@@ -42,24 +44,28 @@ export function Login() {
         </div>
 
         <div className="rounded-3xl border border-line bg-surface p-6 shadow-[var(--shadow-card)] sm:p-8">
-          {selected ? (
+          {adminMode && admin ? (
+            <PasswordStep employee={admin} onBack={() => setAdminMode(false)} onSuccess={() => setRole('admin')} />
+          ) : selected ? (
             <PasswordStep employee={selected} onBack={() => setSelected(null)} onSuccess={() => login(selected.id)} />
           ) : (
             <SelectStep staff={staff} onPick={setSelected} />
           )}
         </div>
 
-        {/* Admin entry */}
-        <div className="mt-5 flex items-center justify-center gap-2 text-[13px] text-ink-mute">
-          <span>Anda admin/pemilik?</span>
-          <button
-            onClick={() => setRole('admin')}
-            className="inline-flex items-center gap-1.5 font-medium text-brand transition-colors hover:text-brand-strong"
-          >
-            <IconSettings className="h-4 w-4" />
-            Masuk sebagai Admin
-          </button>
-        </div>
+        {/* Admin entry — also requires a password (admin's birth date) */}
+        {!adminMode && !selected && (
+          <div className="mt-5 flex items-center justify-center gap-2 text-[13px] text-ink-mute">
+            <span>Anda admin/pemilik?</span>
+            <button
+              onClick={() => setAdminMode(true)}
+              className="inline-flex items-center gap-1.5 font-medium text-brand transition-colors hover:text-brand-strong"
+            >
+              <IconSettings className="h-4 w-4" />
+              Masuk sebagai Admin
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
