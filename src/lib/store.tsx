@@ -1,7 +1,9 @@
 // ───────────────────────────────────────────────────────────────
-// App store — single source of truth held in React state, mirrored to
-// localStorage. No backend (HANDOVER §8). Every view reads/writes through
-// the `useStore()` hook; nothing mutates `data` directly.
+// App store — single source of truth held in React state. Persisted to
+// Supabase (one JSON document, synced realtime to every device) when
+// configured; otherwise mirrored to localStorage (single-device demo).
+// Every view reads/writes through `useStore()`; nothing mutates `data`
+// directly.
 // ───────────────────────────────────────────────────────────────
 
 import {
@@ -28,9 +30,11 @@ import type {
 } from '../types'
 import { makeSeed } from './seed'
 import { evaluateClockIn, todayISO } from './time'
+import { isSupabaseConfigured, supabase } from './supabase'
 
 const STORAGE_KEY = 'absensimentor.v3'
 const ADMIN_ID = 'u_admin'
+const DOC_ID = 'singleton'
 
 let seq = 0
 function newId(prefix: string): string {
@@ -55,6 +59,18 @@ function load(): AppData {
   return makeSeed()
 }
 
+/** empty shell used while the shared document loads from Supabase */
+function emptyAppData(): AppData {
+  return {
+    settings: { clockIn: '08:00', clockOut: '17:00', graceMinutes: 5 },
+    employees: [],
+    attendance: [],
+    leave: [],
+    overtime: [],
+    activities: [],
+  }
+}
+
 // ── Context shape ────────────────────────────────────────────────
 
 export interface Session {
@@ -71,6 +87,10 @@ interface StoreValue {
   data: AppData
   settings: Settings
   session: Session
+  /** true while the shared document is still loading from the backend */
+  loading: boolean
+  /** whether a central backend (Supabase) is wired up */
+  backed: boolean
   /**
    * The logged-in employee. Only read by the Shell + portal views, which render
    * exclusively when someone is logged in, so it is always defined there. Falls
@@ -134,22 +154,97 @@ interface StoreValue {
 const StoreContext = createContext<StoreValue | null>(null)
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<AppData>(load)
+  const [data, setData] = useState<AppData>(() => (isSupabaseConfigured ? emptyAppData() : load()))
+  const [loading, setLoading] = useState(isSupabaseConfigured)
   const [session, setSession] = useState<Session>({ role: 'karyawan', employeeId: null })
 
-  // persist
+  // JSON of the last value written-to / received-from the backend — guards
+  // against re-persisting our own echo (which would loop) and re-applying
+  // realtime events we originated.
+  const syncedRef = useRef<string | null>(null)
+
+  // ── Initial load + realtime subscription (Supabase only) ──
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) return
+    const sb = supabase
+    let cancelled = false
+
+    ;(async () => {
+      const { data: row, error } = await sb
+        .from('app_state')
+        .select('data')
+        .eq('id', DOC_ID)
+        .maybeSingle()
+      if (cancelled) return
+      if (error) {
+        console.error('Supabase load failed:', error.message)
+        setLoading(false)
+        return
+      }
+      if (row?.data) {
+        syncedRef.current = JSON.stringify(row.data)
+        setData(row.data as AppData)
+      } else {
+        // first connection — seed the shared document
+        const seed = makeSeed()
+        syncedRef.current = JSON.stringify(seed)
+        await sb.from('app_state').upsert({ id: DOC_ID, data: seed })
+        if (!cancelled) setData(seed)
+      }
+      if (!cancelled) setLoading(false)
+    })()
+
+    const channel = sb
+      .channel('app_state_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'app_state' },
+        (payload) => {
+          const next = (payload.new as { data?: AppData } | null)?.data
+          if (!next) return
+          const json = JSON.stringify(next)
+          if (json === syncedRef.current) return // our own echo
+          syncedRef.current = json
+          setData(next)
+        },
+      )
+      .subscribe()
+
+    return () => {
+      cancelled = true
+      sb.removeChannel(channel)
+    }
+  }, [])
+
+  // ── Persist on every change ──
   const first = useRef(true)
   useEffect(() => {
     if (first.current) {
       first.current = false
       return
     }
+    if (isSupabaseConfigured && supabase) {
+      if (loading) return
+      const json = JSON.stringify(data)
+      if (json === syncedRef.current) return // unchanged or echo
+      syncedRef.current = json
+      const client = supabase
+      const handle = setTimeout(() => {
+        client
+          .from('app_state')
+          .upsert({ id: DOC_ID, data, updated_at: new Date().toISOString() })
+          .then(({ error }) => {
+            if (error) console.error('Supabase save failed:', error.message)
+          })
+      }, 250)
+      return () => clearTimeout(handle)
+    }
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
     } catch {
       /* storage may be unavailable — non-fatal for a demo */
     }
-  }, [data])
+  }, [data, loading])
 
   const setRole = useCallback((role: Role) => {
     if (role === 'admin') {
@@ -355,6 +450,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     data,
     settings: data.settings,
     session,
+    loading,
+    backed: isSupabaseConfigured,
     currentEmployee,
     setRole,
     login,
